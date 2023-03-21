@@ -3,10 +3,10 @@ import { formatDate, formatStatus } from "../app/format.js";
 import Logout from "./Logout.js";
 
 export default class {
-  constructor({ document, onNavigate, firestore, localStorage }) {
+  constructor({ document, onNavigate, store, localStorage }) {
     this.document = document;
     this.onNavigate = onNavigate;
-    this.firestore = firestore;
+    this.store = store;
     const buttonNewBill = document.querySelector(
       `button[data-testid="btn-new-bill"]`
     );
@@ -30,45 +30,39 @@ export default class {
     $("#modaleFile")
       .find(".modal-body")
       .html(
-        `<div style='text-align: center;'><img width=${imgWidth} src=${billUrl} /></div>`
+        `<div style='text-align: center;' class="bill-proof-container"><img width=${imgWidth} src=${billUrl} /></div>`
       );
     $("#modaleFile").modal("show");
   };
 
   // no need to cover this function by tests
   getBills = () => {
-    const userEmail = localStorage.getItem("user")
-      ? JSON.parse(localStorage.getItem("user")).email
-      : "";
-    if (this.firestore) {
-      return this.firestore
+    if (this.store) {
+      return this.store
         .bills()
-        .get()
+        .list()
         .then((snapshot) => {
-          const bills = snapshot.docs
-            .map((doc) => {
-              try {
-                return {
-                  ...doc.data(),
-                  formatedDate: formatDate(doc.data().date),
-                  status: formatStatus(doc.data().status),
-                };
-              } catch (e) {
-                // if for some reason, corrupted data was introduced, we manage here failing formatDate function
-                // log the error and return unformatted date in that case
-                console.log(e, "for", doc.data());
-                return {
-                  ...doc.data(),
-                  date: doc.data().date,
-                  status: formatStatus(doc.data().status),
-                };
-              }
-            })
-            .filter((bill) => bill.email === userEmail);
+          const bills = snapshot.map((doc) => {
+            try {
+              return {
+                ...doc,
+                formatedDate: formatDate(doc.date),
+                status: formatStatus(doc.status),
+              };
+            } catch (e) {
+              // if for some reason, corrupted data was introduced, we manage here failing formatDate function
+              // log the error and return unformatted date in that case
+              console.log(e, "for", doc);
+              return {
+                ...doc,
+                date: doc.date,
+                status: formatStatus(doc.status),
+              };
+            }
+          });
           console.log("length", bills.length);
           return bills;
-        })
-        .catch((error) => error);
+        });
     }
   };
 }
