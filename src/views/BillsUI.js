@@ -1,11 +1,11 @@
-import VerticalLayout from "./VerticalLayout.js";
-import ErrorPage from "./ErrorPage.js";
-import LoadingPage from "./LoadingPage.js";
+import VerticalLayout from './VerticalLayout.js'
+import ErrorPage from "./ErrorPage.js"
+import LoadingPage from "./LoadingPage.js"
 
-import Actions from "./Actions.js";
+import Actions from './Actions.js'
 
 const row = (bill) => {
-  return `
+  return (`
     <tr>
       <td>${bill.type}</td>
       <td>${bill.name}</td>
@@ -16,23 +16,22 @@ const row = (bill) => {
         ${Actions(bill.fileUrl)}
       </td>
     </tr>
-    `;
-};
+    `)
+  }
 
 const rows = (data) => {
-  if (data !== undefined) {
-    data.sort((a, b) => (a.date < b.date ? 1 : -1));
-  }
-  return data && data.length ? data.map((bill) => row(bill)).join("") : "";
-};
+  if (data !== undefined) { data.sort((a, b) => ((a.date < b.date) ? 1 : -1)) }
+  return (data && data.length) ? data.map(bill => row(bill)).join("") : ""
+}
 
 export default ({ data: bills, loading, error }) => {
-  const modal = () => `
+  
+  const modal = () => (`
     <div class="modal fade" id="modaleFile" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLongTitle">Fee</h5>
+            <h5 class="modal-title" id="exampleModalLongTitle">Justificatif</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -42,31 +41,31 @@ export default ({ data: bills, loading, error }) => {
         </div>
       </div>
     </div>
-  `;
+  `)
 
   if (loading) {
-    return LoadingPage();
+    return LoadingPage()
   } else if (error) {
-    return ErrorPage(error);
+    return ErrorPage(error)
   }
-
-  return `
+  
+  return (`
     <div class='layout'>
       ${VerticalLayout(120)}
       <div class='content'>
         <div class='content-header'>
-          <div class='content-title'> My fees </div>
-          <button type="button" data-testid='btn-new-bill' class="btn btn-primary">New fee</button>
+          <div class='content-title'> Mes notes de frais </div>
+          <button type="button" data-testid='btn-new-bill' class="btn btn-primary">Nouvelle note de frais</button>
         </div>
         <div id="data-table">
         <table id="example" class="table table-striped" style="width:100%">
           <thead>
               <tr>
-                <th>Category</th>
-                <th>Label</th>
+                <th>Type</th>
+                <th>Nom</th>
                 <th>Date</th>
-                <th>Amount</th>
-                <th>Status</th>
+                <th>Montant</th>
+                <th>Statut</th>
                 <th>Actions</th>
               </tr>
           </thead>
@@ -77,5 +76,6 @@ export default ({ data: bills, loading, error }) => {
         </div>
       </div>
       ${modal()}
-    </div>`;
-};
+    </div>`
+  )
+}
