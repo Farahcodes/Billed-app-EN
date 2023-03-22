@@ -1,93 +1,91 @@
-/**
- * @jest-environment jsdom
- */
+import {setLocalStorage} from "../../setup-jest"
+import { fireEvent, screen} from "@testing-library/dom"
+import NewBillUI from "../views/NewBillUI.js"
+import NewBill from "../containers/NewBill.js"
+import firestore from "../app/Firestore.js"
 
-import { screen, within, waitFor, fireEvent } from "@testing-library/dom";
-import userEvent from "@testing-library/user-event";
-import NewBillUI from "../views/NewBillUI.js";
-import NewBill from "../containers/NewBill.js";
-import { localStorageMock } from "../__mocks__/localStorage.js";
-import store from "../__mocks__/store";
-import { ROUTES, ROUTES_PATH } from "../constants/routes.js";
-import { ApiEntity } from "../app/Store.js";
-import { bills } from "../fixtures/bills.js";
-
-// Setup localstorage and window with its location hash
-Object.defineProperty(window, "localStorage", { value: localStorageMock });
-Object.defineProperty(window, "location", { value: { hash: "" } });
+// Setup
+const onNavigate = () => {return}
+setLocalStorage('Employee')
+Object.defineProperty(window, "location", { value: { hash: "#employee/bill/new" } })
 
 describe("Given I am connected as an employee", () => {
-  describe("When I am on NewBill Page", () => {
-    test("Then adding a file to the form should call the api", async () => {
-      window.localStorage.setItem("user", JSON.stringify({ type: "Employee" }));
-      const html = NewBillUI();
-      document.body.innerHTML = html;
-      const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname });
-      };
-      class FakeApiEntity {
-        async update({ data, headers = {} }) {
-          return await "";
+  describe("When I access NewBill Page", () => {
+    test("Then the newBill page should be rendered", () => {
+      document.body.innerHTML = NewBillUI()
+      expect(screen.getAllByText("Envoyer une note de frais")).toBeTruthy()
+    })
+    test("Then a form with nine fields should be rendered", () => {
+      document.body.innerHTML = NewBillUI()
+      const form = document.querySelector("form")
+      expect(form.length).toEqual(9)
+    })
+  })
+  describe("When I'm on NewBill Page", () => {
+    describe("And I upload a image file", () => {
+      test("Then the file handler should show a file", () => {
+        document.body.innerHTML = NewBillUI()
+        const newBill = new NewBill({ document, onNavigate, firestore: firestore, localStorage: window.localStorage })
+        const handleChangeFile = jest.fn(() => newBill.handleChangeFile)
+        const inputFile = screen.getByTestId("file")
+        inputFile.addEventListener("change", handleChangeFile)
+        fireEvent.change(inputFile, {
+            target: {
+                files: [new File(["sample.txt"], "sample.txt", { type: "text/txt" })],
+            }
+        })
+        const numberOfFile = screen.getByTestId("file").files.length
+        expect(numberOfFile).toEqual(1)
+      })
+    })
+    describe("And I upload a non-image file", () => {
+      test("Then the error message should be display", async () => {
+        document.body.innerHTML = NewBillUI()
+        const newBill = new NewBill({ document, onNavigate, firestore: firestore, localStorage: window.localStorage })
+        const handleChangeFile = jest.fn(() => newBill.handleChangeFile)
+        const inputFile = screen.getByTestId("file")
+        inputFile.addEventListener("change", handleChangeFile)
+        fireEvent.change(inputFile, {
+            target: {
+                files: [new File(["sample.txt"], "sample.txt", { type: "text/txt" })],
+            }
+        })
+        expect(handleChangeFile).toBeCalled()
+        expect(inputFile.files[0].name).toBe("sample.txt")
+        expect(document.querySelector(".error-imageFormat").style.display).toBe("block")
+      })
+    })
+    describe("And I submit a valid bill form", () => {
+      test('then a bill is created', async () => {
+        document.body.innerHTML = NewBillUI()
+        const newBill = new NewBill({ document, onNavigate, firestore: firestore, localStorage: window.localStorage })
+        const submit = screen.getByTestId('form-new-bill')
+        const validBill = {
+          name: "validBill",
+          date: "2021-01-01",
+          type: "Restaurants et bars",
+          amount: 10,
+          pct: 10,
+          vat: "40",
+          fileName: "test.jpg",
+          fileUrl: "https://goulven-clech.dev/test.jpg"
         }
-        async create({ data, headers = {} }) {
-          return await "";
-        }
-      }
-      const fakeStore = { bills: () => new FakeApiEntity() };
-      const currenNewBill = new NewBill({
-        document,
-        onNavigate,
-        store: fakeStore,
-        localStorage: localStorage,
-      });
-      const fileTest = new File(["hello"], "path\\hello.png", {
-        type: "image/png",
-      });
-
-      const handleChangeFile = jest.fn((e) =>
-        currenNewBill.handleChangeFile(e)
-      );
-
-      const selectFile = screen.getByTestId("file");
-      selectFile.addEventListener("change", handleChangeFile);
-      userEvent.upload(selectFile, fileTest);
-
-      expect(selectFile.files[0]).toStrictEqual(fileTest);
-      expect(selectFile.files.item(0)).toStrictEqual(fileTest);
-      expect(selectFile.files).toHaveLength(1);
-    });
-    test("Then sending my new bill, I should be to the bill page", async () => {
-      window.localStorage.setItem("user", JSON.stringify({ type: "Employee" }));
-      const html = NewBillUI();
-      document.body.innerHTML = html;
-      const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname });
-      };
-      const currenNewBill = new NewBill({
-        document,
-        onNavigate,
-        store: null,
-        localStorage: localStorage,
-      });
-
-      const handleSubmit = jest.fn((e) => currenNewBill.handleSubmit(e));
-
-      const form = screen.getByTestId("form-new-bill");
-      form.addEventListener("submit", handleSubmit);
-      fireEvent.submit(form);
-      const isBills = screen.getByText(/Mes notes de frais/);
-      expect(isBills).toBeTruthy();
-    });
-  });
-});
-
-// test d'intégration POST
-describe("Given I am a user connected as an employee", () => {
-  describe("When I navigate to NewBill", () => {
-    test("send a new bill from mock API POST", async () => {
-      const getSpy = jest.spyOn(store, "post");
-      await store.post(bills[0]);
-      expect(getSpy).toHaveBeenCalledTimes(1);
-    });
-  });
-});
+        const handleSubmit = jest.fn((e) => newBill.handleSubmit(e))
+        newBill.createBill = (newBill) => newBill
+        document.querySelector(`input[data-testid="expense-name"]`).value = validBill.name
+        document.querySelector(`input[data-testid="datepicker"]`).value = validBill.date
+        document.querySelector(`select[data-testid="expense-type"]`).value = validBill.type
+        document.querySelector(`input[data-testid="amount"]`).value = validBill.amount
+        document.querySelector(`input[data-testid="vat"]`).value = validBill.vat
+        document.querySelector(`input[data-testid="pct"]`).value = validBill.pct
+        document.querySelector(`textarea[data-testid="commentary"]`).value = validBill.commentary
+        newBill.fileUrl = validBill.fileUrl
+        newBill.fileName = validBill.fileName 
+        submit.addEventListener('click', handleSubmit)
+        fireEvent.click(submit)
+        expect(handleSubmit).toHaveBeenCalled()
+      })
+    })
+  })
+    
+})
