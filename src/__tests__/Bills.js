@@ -95,7 +95,7 @@ describe("Given I am connected as an employee", () => {
   });
 });
 
-// Integration test for GET
+// test d'intégration GET
 describe("Given I am a user connected as an employee", () => {
   describe("When I navigate to Bills", () => {
     test("fetches bills from mock API GET", async () => {
