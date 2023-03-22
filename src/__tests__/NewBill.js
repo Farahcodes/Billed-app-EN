@@ -75,7 +75,7 @@ describe("Given I am connected as an employee", () => {
       const form = screen.getByTestId("form-new-bill");
       form.addEventListener("submit", handleSubmit);
       fireEvent.submit(form);
-      const isBills = screen.getByText(/Mes notes de frais/);
+      const isBills = screen.getByText(/My fees/);
       expect(isBills).toBeTruthy();
     });
   });
