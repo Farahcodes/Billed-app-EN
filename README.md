@@ -19,3 +19,6 @@ To complete this project, the following tasks needed to be completed:
 2. Add unit and integration tests for the Bills and NewBill files. Some tests have already been developed for the login and HR administrators dashboard, which are checked on the Kanban board. 
 
 3. Develop a test plan to manually test the end-to-end flow of the employee path. 
+
+## Coverage report
+![image](https://user-images.githubusercontent.com/87566177/226945483-bdbcd6fc-3c24-44e5-a9d7-d979fa114851.png)
