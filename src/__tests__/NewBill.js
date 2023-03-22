@@ -75,13 +75,13 @@ describe("Given I am connected as an employee", () => {
       const form = screen.getByTestId("form-new-bill");
       form.addEventListener("submit", handleSubmit);
       fireEvent.submit(form);
-      const isBills = screen.getByText(/My fees/);
+      const isBills = screen.getByText(/Mes notes de frais/);
       expect(isBills).toBeTruthy();
     });
   });
 });
 
-//  POST integration test
+// test d'intégration POST
 describe("Given I am a user connected as an employee", () => {
   describe("When I navigate to NewBill", () => {
     test("send a new bill from mock API POST", async () => {
