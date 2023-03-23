@@ -49,7 +49,7 @@ describe("Given I am connected as an employee", () => {
       const html = BillsUI({ data: bills, loading: true });
       document.body.innerHTML = html;
       expect(screen.getAllByText("Loading...")).toBeTruthy();
-    });
+    }); //checks if the correct loading message is rendered when the bills data is still loading.
 
     describe("When error is detected", () => {
       test("Without empty error description, then ErrorPage should be rendered without description", () => {
@@ -59,13 +59,13 @@ describe("Given I am connected as an employee", () => {
         expect(
           screen.getByTestId("error-message").innerHTML.trim().length
         ).toBe(0);
-      });
+      }); //checks that when the error prop of the BillsUI component is an empty string, the ErrorPage component is rendered without a description
       test("With an error message, then ErrorPage should be rendered with the message as description", () => {
         const errorMessage = "Not connected to the internet";
         const html = BillsUI({ data: bills, error: errorMessage });
         document.body.innerHTML = html;
         expect(screen.getAllByText(errorMessage)).toBeTruthy();
-      });
+      }); //checks that when the error prop is not an empty string, the ErrorPage component is rendered with the error prop as the error message.
     });
 
     describe("When I click the New Bills button", () => {
@@ -77,13 +77,13 @@ describe("Given I am connected as an employee", () => {
           "user",
           JSON.stringify({
             type: "Employee",
-          })
+          }) //first sets up a mock localStorage object with the user type set to "Employee"
         );
         const html = BillsUI({ data: bills });
-        document.body.innerHTML = html;
+        document.body.innerHTML = html; //then renders the BillsUI component with the bills data and sets the document.body.innerHTML to the rendered HTML
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname });
-        };
+        }; //creates a Bills instance with the onNavigate function defined to set the document.body.innerHTML to the appropriate HTML for the given pathname
         const firestore = null;
         const billsInit = new Bills({
           document,
@@ -99,16 +99,18 @@ describe("Given I am connected as an employee", () => {
           billsInit.handleClickNewBill()
         );
         buttonNewBill.addEventListener("click", handleClickNewBill);
-        fireEvent.click(buttonNewBill);
-        expect(handleClickNewBill).toHaveBeenCalled();
-        const newBillForm = screen.queryByTestId("form-new-bill");
+        fireEvent.click(buttonNewBill); //simulates a click on the "New Bill" button using the fireEvent.click function
+        expect(handleClickNewBill).toHaveBeenCalled(); //checks that the handleClickNewBill function is called
+        const newBillForm = screen.queryByTestId("form-new-bill"); //and that the new bill form is present in the rendered HTML
         expect(newBillForm).toBeTruthy();
       });
-    });
+    }); // It tests that when the "New Bill" button is clicked, the user is taken to a new page with a form to create a new bill.
 
     describe("When I click on the eye icon of a bill", () => {
       test("Then a modal must appear", async () => {
+        //checks whether a modal window appears when the eye icon is clicked.
         const onNavigate = (pathname) => {
+          //onNavigate function that is used to update the URL when navigation occurs
           document.body.innerHTML = ROUTES({ pathname });
         };
         Object.defineProperty(window, "localStorage", {
@@ -118,7 +120,7 @@ describe("Given I am connected as an employee", () => {
           "user",
           JSON.stringify({
             type: "Employee",
-          })
+          }) // mocks the localStorage object and sets a user key with a type property of Employee
         );
         const billsInit = new Bills({
           document,
@@ -127,8 +129,8 @@ describe("Given I am connected as an employee", () => {
           localStorage: window.localStorage,
         });
         document.body.innerHTML = BillsUI({ data: bills });
-        const handleClickIconEye = jest.fn((icon) =>
-          billsInit.handleClickIconEye(icon)
+        const handleClickIconEye = jest.fn(
+          (icon) => billsInit.handleClickIconEye(icon) //called when the eye icon is clicked
         );
         const iconEye = screen.getAllByTestId("icon-eye");
         const modalFile = screen.queryByTestId("modaleFileEmployee");
@@ -138,25 +140,26 @@ describe("Given I am connected as an employee", () => {
           userEvent.click(icon);
           expect(handleClickIconEye).toHaveBeenCalled();
         });
-        expect(modalFile.getAttribute("class")).toContain("show");
+        expect(modalFile.getAttribute("class")).toContain("show"); //checks that handleClickIconEye was called and that the modal window has the class show.
       });
-    });
+    }); //tests the behavior of a click event on the eye icon of a bill.
 
     describe("When no image is present in the database", () => {
       test("Then a no image to display text is displayed instead of an image", () => {
         Object.defineProperty(window, "localStorage", {
-          value: localStorageMock,
+          //sets up the environment for the test
+          value: localStorageMock, //mocks the localStorage
         });
         window.localStorage.setItem(
           "user",
           JSON.stringify({
-            type: "Employee",
+            type: "Employee", //sets a user key with a type property of Employee.
           })
         );
         const html = BillsUI({ data: bill });
         document.body.innerHTML = html;
         const onNavigate = (pathname) => {
-          document.body.innerHTML = ROUTES({ pathname });
+          document.body.innerHTML = ROUTES({ pathname }); //ets up the UI by setting the HTML content of the document.body to the result of calling BillsUI
         };
         const firestore = null;
         const billsInit = new Bills({
@@ -166,7 +169,7 @@ describe("Given I am connected as an employee", () => {
           localStorage: window.localStorage,
         });
 
-        const eye = document.querySelector(`div[data-testid="icon-eye"]`);
+        const eye = document.querySelector(`div[data-testid="icon-eye"]`); // finds the eye icon
         const handleClickIconEye = jest.fn((e) =>
           billsInit.handleClickIconEye(eye)
         );
@@ -175,43 +178,47 @@ describe("Given I am connected as an employee", () => {
 
         userEvent.click(eye);
         expect(handleClickIconEye).toHaveBeenCalled();
-        expect(screen.getByText("No image to display")).toBeTruthy();
+        expect(screen.getByText("No image to display")).toBeTruthy(); //checks that handleClickIconEye was called and that the text "No image to display" is present on the screen.
       });
-    });
+    }); //tests the behavior of an employee viewing a bill when there is no image present in the database.
   });
 });
 
 //integration test
 describe("Given I am a user connected as Employee", () => {
   describe("when I navigate to bills page", () => {
+    //test the behavior of an Employee user when navigating to the bills page.
     test("fetched bills from mock API", async () => {
+      //tests that the bills are fetched from the mock API.
       const userEmail = "a@a";
 
       const getSpy = jest.spyOn(firebase, "get");
-      const bills = await firebase.get();
+      const bills = await firebase.get(); //calls firebase.get and awaits the result.
       expect(getSpy).toHaveBeenCalledTimes(1);
       expect(bills.data.length).toBe(4);
 
-      bills.data.filter((bill) => bill.email === userEmail);
-      expect(bills.data[0].email).toMatch(userEmail);
+      bills.data.filter((bill) => bill.email === userEmail); //filters the bills to find those with the specified userEmail
+      expect(bills.data[0].email).toMatch(userEmail); //checks that the email of the first bill in the filtered list matches the specified email.
     });
     test("fetches bills from an API and fails with a 404 error", async () => {
+      //test the behavior when fetching bills from the API fails with a 404 error
       firebase.get.mockImplementationOnce(() =>
         Promise.reject(new Error("Erreur 404"))
       );
       const html = BillsUI({ error: "Erreur 404" });
       document.body.innerHTML = html;
       const message = await screen.getByText(/Erreur 404/);
-      expect(message).toBeTruthy();
+      expect(message).toBeTruthy(); //return a rejected promise with an error message.
     });
     test("fetches messages from an API and fails with a 500 error", async () => {
+      //test the behavior when fetching bills from the API fails with  500 error
       firebase.get.mockImplementationOnce(() =>
         Promise.reject(new Error("Erreur 500"))
       );
       const html = BillsUI({ error: "Erreur 500" });
       document.body.innerHTML = html;
       const message = await screen.getByText(/Erreur 500/);
-      expect(message).toBeTruthy();
+      expect(message).toBeTruthy(); //return a rejected promise with an error message.
     });
   });
 });
