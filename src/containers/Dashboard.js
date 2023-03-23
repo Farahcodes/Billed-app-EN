@@ -106,9 +106,11 @@ export default class {
   };
 
   handleEditTicket(e, bill, bills) {
-    if (this.counter === undefined || this.id !== bill.id) this.counter = 0;
-    if (this.id === undefined || this.id !== bill.id) this.id = bill.id;
+    if (this.counter === undefined || this.id !== bill.id) this.counter = 0; //The counter property is used to keep track of whether the bill object is currently open or closed
+    //The value of the counter property is incremented or decremented depending on whether the bill object is being opened or closed. If the bill object is being opened, the value of the counter property is incremented by 1. If the bill object is being closed, the value of the counter property is decremented by 1.
+    if (this.id === undefined || this.id !== bill.id) this.id = bill.id; //initializing the counter and id properties.
     if (this.counter % 2 === 0) {
+      //If counter is even (indicating that the bill object is currently closed)
       bills.forEach((b) => {
         $(`#open-bill${b.id}`).css({ background: "#0D5AE5" });
       });
@@ -117,6 +119,7 @@ export default class {
       $(".vertical-navbar").css({ height: "150vh" });
       this.counter--; //Bug Hunt - dashboard
     } else {
+      //If counter is odd (indicating that the bill object is currently open)
       $(`#open-bill${bill.id}`).css({ background: "#0D5AE5" });
 
       $(".dashboard-right-container div").html(`
