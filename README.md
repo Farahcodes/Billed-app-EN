@@ -21,4 +21,4 @@ To complete this project, the following tasks needed to be completed:
 3. Develop a test plan to manually test the end-to-end flow of the employee path. 
 
 ## Coverage report
-![image](https://user-images.githubusercontent.com/87566177/226945483-bdbcd6fc-3c24-44e5-a9d7-d979fa114851.png)
+![image](https://user-images.githubusercontent.com/87566177/227145219-d68889cf-48b8-4cba-8cbf-0b1ded67310d.png)
