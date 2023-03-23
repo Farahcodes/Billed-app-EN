@@ -52,8 +52,8 @@ describe('Given I am connected as an Admin and I am on Dashboard Page', () => {
     test(('Then, it should show button and textArea'), () => {
       const html = DashboardFormUI(billPending)
       document.body.innerHTML = html
-      expect(screen.getByText("Accepter")).toBeTruthy()
-      expect(screen.getByText("Refuser")).toBeTruthy()
+      expect(screen.getByText("Accept")).toBeTruthy()
+      expect(screen.getByText("Decline")).toBeTruthy()
       expect(screen.getByTestId("commentary2")).toBeTruthy()
     })
   })
@@ -64,7 +64,7 @@ describe('Given I am connected as an Admin and I am on Dashboard Page', () => {
       expect(screen.getByText(bill.commentAdmin)).toBeTruthy()
     })
   })
-  describe('When acceptrefuseded bill is passed to DashboardUI', () => {
+  describe('When cancelled bill is passed to DashboardUI', () => {
     test(('Then, it should show admin commentary'), () => {
       const html = DashboardFormUI(billrefused)
       document.body.innerHTML = html

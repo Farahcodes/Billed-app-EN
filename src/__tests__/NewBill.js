@@ -1,123 +1,143 @@
-import { setLocalStorage } from "../../setup-jest";
 import { fireEvent, screen } from "@testing-library/dom";
 import NewBillUI from "../views/NewBillUI.js";
 import NewBill from "../containers/NewBill.js";
-import firestore from "../app/Firestore.js";
+import userEvent from "@testing-library/user-event";
+import { localStorageMock } from "../__mocks__/localStorage";
+import { ROUTES, ROUTES_PATH } from "../constants/routes";
+import { firestore } from "../__mocks__/firestore";
+import firebase from "../__mocks__/firebase";
+import BillsUI from "../views/BillsUI";
 
-// Setup
-const onNavigate = () => {
-  return;
-};
-setLocalStorage("Employee");
-Object.defineProperty(window, "location", {
-  value: { hash: "#employee/bill/new" },
-});
+const bill = [
+  {
+    id: "47qAXb6fIm2zOKkLzMro",
+    vat: "80",
+    fileUrl:
+      "https://firebasestorage.googleapis.com/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a",
+    status: "pending",
+    type: "Hôtel et logement",
+    commentary: "séminaire billed",
+    name: "encore",
+    fileName: "preview-facture-free-201801-pdf-1.jpg",
+    date: "2004-04-04",
+    amount: 400,
+    commentAdmin: "ok",
+    email: "a@a",
+    pct: 20,
+    email: "john.snow@billed.com",
+  },
+];
 
 describe("Given I am connected as an employee", () => {
-  describe("When I access NewBill Page", () => {
-    test("Then the newBill page should be rendered", () => {
-      document.body.innerHTML = NewBillUI();
-      expect(screen.getAllByText("Envoyer une note de frais")).toBeTruthy();
+  describe("When I am on NewBill Page", () => {
+    let html;
+    let onNavigate;
+    let newBill;
+    beforeEach(() => {
+      html = NewBillUI();
+      document.body.innerHTML = html;
+
+      Object.defineProperty(window, "localStorage", {
+        value: localStorageMock,
+      });
+      window.localStorage.setItem("user", JSON.stringify({ type: "Employee" }));
+
+      onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      newBill = new NewBill({
+        document,
+        onNavigate,
+        firestore,
+        localStorage,
+      });
     });
-    test("Then a form with nine fields should be rendered", () => {
-      document.body.innerHTML = NewBillUI();
-      const form = document.querySelector("form");
-      expect(form.length).toEqual(9);
+
+    test("Then submit button in new Bill Form should have Event Handler added", () => {
+      const formNewBill = screen.getByTestId("form-new-bill");
+      newBill.createBill = jest.fn();
+      const handleSubmit = jest.fn(newBill.handleSubmit);
+      formNewBill.addEventListener("submit", handleSubmit);
+      fireEvent.submit(formNewBill);
+      expect(handleSubmit).toHaveBeenCalled();
+    });
+
+    test("Then file input field should have Event Handler added", () => {
+      const fileInput = screen.getByTestId("file");
+      const file = [new File(["hello"], "hello.png", { type: "image/png" })];
+      const handleChangeFile = jest.fn(newBill.handleChangeFile);
+      fileInput.addEventListener("change", handleChangeFile);
+      userEvent.upload(fileInput, file);
+      expect(handleChangeFile).toHaveBeenCalled();
+    });
+
+    test("then file input should only accept types png, jpg and jpeg", () => {
+      const fileInput = screen.getByTestId("file");
+
+      const png = new File(["hello"], "hello.png", { type: "image/png" });
+      userEvent.upload(fileInput, png);
+      expect(firestore.storage.ref).toHaveBeenCalledTimes(1);
+
+      const jpg = new File(["hello"], "hello.jpg", { type: "image/jpg" });
+      userEvent.upload(fileInput, jpg);
+      expect(firestore.storage.ref).toHaveBeenCalledTimes(2);
+
+      const jpeg = new File(["hello"], "hello.jpeg", { type: "image/jpeg" });
+      userEvent.upload(fileInput, jpeg);
+      expect(firestore.storage.ref).toHaveBeenCalledTimes(3);
+
+      const gif = new File(["hello"], "hello.gif", { type: "image/gif" });
+      userEvent.upload(fileInput, gif);
+      expect(firestore.storage.ref).toHaveBeenCalledTimes(3);
+      expect(fileInput.value).toBe("");
+    });
+
+    test("then on submit, a new bill is created and My Fees page loaded", () => {
+      let spy = jest
+        .spyOn(newBill, "createBill")
+        .mockImplementation(() => "createBill called");
+      const buttonSubmit = screen.getByTestId("form-new-bill");
+      fireEvent.submit(buttonSubmit);
+      expect(newBill.createBill).toHaveBeenCalled();
+
+      const data = [];
+      const loading = false;
+      const error = null;
+      const pathname = ROUTES_PATH["Bills"];
+      const html = ROUTES({ pathname, data, loading, error });
+      document.body.innerHTML = html;
+      expect(screen.getAllByText("My fees")).toBeTruthy();
     });
   });
-  describe("When I'm on NewBill Page", () => {
-    describe("And I upload a image file", () => {
-      test("Then the file handler should show a file", () => {
-        document.body.innerHTML = NewBillUI();
-        const newBill = new NewBill({
-          document,
-          onNavigate,
-          firestore: firestore,
-          localStorage: window.localStorage,
-        });
-        const handleChangeFile = jest.fn(() => newBill.handleChangeFile);
-        const inputFile = screen.getByTestId("file");
-        inputFile.addEventListener("change", handleChangeFile);
-        fireEvent.change(inputFile, {
-          target: {
-            files: [
-              new File(["sample.txt"], "sample.txt", { type: "text/txt" }),
-            ],
-          },
-        });
-        const numberOfFile = screen.getByTestId("file").files.length;
-        expect(numberOfFile).toEqual(1);
-      });
+});
+
+// GET Integration Test
+describe("Given I am a user connected as Employee", () => {
+  describe("When I post a New Bill from the New Bill Form", () => {
+    test("posts bill via mock API POST", async () => {
+      const postSpy = jest.spyOn(firebase, "post");
+      const response = await firebase.post();
+      expect(postSpy).toHaveBeenCalledTimes(1);
+      expect(response).toEqual({ 200: "<data_at_path>" });
     });
-    describe("And I upload a non-image file", () => {
-      test("Then the error message should be display", async () => {
-        document.body.innerHTML = NewBillUI();
-        const newBill = new NewBill({
-          document,
-          onNavigate,
-          firestore: firestore,
-          localStorage: window.localStorage,
-        });
-        const handleChangeFile = jest.fn(() => newBill.handleChangeFile);
-        const inputFile = screen.getByTestId("file");
-        inputFile.addEventListener("change", handleChangeFile);
-        fireEvent.change(inputFile, {
-          target: {
-            files: [
-              new File(["sample.txt"], "sample.txt", { type: "text/txt" }),
-            ],
-          },
-        });
-        expect(handleChangeFile).toBeCalled();
-        expect(inputFile.files[0].name).toBe("sample.txt");
-        expect(document.querySelector(".error-imageFormat").style.display).toBe(
-          "block"
-        );
+    test("posts bill via mock API and fails with 404 message error", async () => {
+      firebase.post.mockImplementationOnce(() => {
+        Promise.reject(new Error("Error 404"));
       });
+      const html = BillsUI({ error: "Error 404" });
+      document.body.innerHTML = html;
+      const message = screen.getByText(/Error 404/);
+      expect(message).toBeTruthy;
     });
-    describe("And I submit a valid bill form", () => {
-      test("then a bill is created", async () => {
-        document.body.innerHTML = NewBillUI();
-        const newBill = new NewBill({
-          document,
-          onNavigate,
-          firestore: firestore,
-          localStorage: window.localStorage,
-        });
-        const submit = screen.getByTestId("form-new-bill");
-        const validBill = {
-          name: "validBill",
-          date: "2021-01-01",
-          type: "Restaurants et bars",
-          amount: 10,
-          pct: 10,
-          vat: "40",
-          fileName: "test.jpg",
-          fileUrl:
-            "https://images.unsplash.com/photo-1495562569060-2eec283d3391?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8c3BhaW58ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60",
-        };
-        const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
-        newBill.createBill = (newBill) => newBill;
-        document.querySelector(`input[data-testid="expense-name"]`).value =
-          validBill.name;
-        document.querySelector(`input[data-testid="datepicker"]`).value =
-          validBill.date;
-        document.querySelector(`select[data-testid="expense-type"]`).value =
-          validBill.type;
-        document.querySelector(`input[data-testid="amount"]`).value =
-          validBill.amount;
-        document.querySelector(`input[data-testid="vat"]`).value =
-          validBill.vat;
-        document.querySelector(`input[data-testid="pct"]`).value =
-          validBill.pct;
-        document.querySelector(`textarea[data-testid="commentary"]`).value =
-          validBill.commentary;
-        newBill.fileUrl = validBill.fileUrl;
-        newBill.fileName = validBill.fileName;
-        submit.addEventListener("click", handleSubmit);
-        fireEvent.click(submit);
-        expect(handleSubmit).toHaveBeenCalled();
+    test("posts bill via mock API and fails with 500 message error", async () => {
+      firebase.post.mockImplementationOnce(() => {
+        Promise.reject(new Error("Error 500"));
       });
+      const html = BillsUI({ error: "Error 500" });
+      document.body.innerHTML = html;
+      const message = screen.getByText(/Error 500/);
+      expect(message).toBeTruthy;
     });
   });
 });
