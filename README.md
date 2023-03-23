@@ -22,3 +22,9 @@ To complete this project, the following tasks needed to be completed:
 
 ## Coverage report
 ![image](https://user-images.githubusercontent.com/87566177/227145219-d68889cf-48b8-4cba-8cbf-0b1ded67310d.png)
+## Summary and personal feedback
+Working on this project was disappointing and frustrating at the same time, for several reasons:
+1. The quality of the initial code base is a disaster.The code is poorly organized, not very readable, poorly/not documented, with a lot of side effects and elements dependent on undocumented states.
+2. Writing tests after writing the code (especially when written by someone else) is such a bad practice. The good practice of writing tests is to write them before writing the code. This approach is known as Test-Driven Development (TDD), and it involves writing tests that describe the expected behavior of the code before actually writing the code to implement that behavior.
+3. There are errors in the console related to the firebase database (quota exceeded) that is making it impossible to retrieve data in the admin dashboard. This issue has been shared [here](https://github.com/OpenClassrooms-Student-Center/Billed-app-EN/issues/2) but have never been fixed.
+![image](https://user-images.githubusercontent.com/87566177/227149113-af0a910a-9707-42e2-a3c5-f4913daef60f.png)
