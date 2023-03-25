@@ -184,7 +184,7 @@ describe("Given I am connected as an employee", () => {
   });
 });
 
-//integration test
+//GET integration test
 describe("Given I am a user connected as Employee", () => {
   describe("when I navigate to bills page", () => {
     //test the behavior of an Employee user when navigating to the bills page.
