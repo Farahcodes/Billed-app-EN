@@ -115,21 +115,30 @@ describe("Given I am connected as an employee", () => {
 // POST Integration Test
 describe("Given I am a user connected as Employee", () => {
   describe("When I post a New Bill from the New Bill Form", () => {
+    // This test checks that the post() function is called once and returns a successful response
     test("posts bill via mock API POST", async () => {
+      // Spy on the post() function to check that it is called
       const postSpy = jest.spyOn(firebase, "post");
+      // Call the post() function and wait for the response
       const response = await firebase.post();
+      // Check that the spy was called once and that the response matches the expected value
       expect(postSpy).toHaveBeenCalledTimes(1);
       expect(response).toEqual({ 200: "<data_at_path>" });
     });
+    // This test verifies that the post() function handles a 404 error correctly
     test("posts bill via mock API and fails with 404 message error", async () => {
+      // Mock the behavior of the post() function to return a rejected Promise with a 404 error
       firebase.post.mockImplementationOnce(() => {
         Promise.reject(new Error("Error 404"));
       });
+      // Set the HTML of the document to display the appropriate error message
       const html = BillsUI({ error: "Error 404" });
       document.body.innerHTML = html;
+      // Search for the error message in the HTML and check that it is present
       const message = screen.getByText(/Error 404/);
       expect(message).toBeTruthy;
     });
+    // This test verifies that the post() function handles a 500
     test("posts bill via mock API and fails with 500 message error", async () => {
       firebase.post.mockImplementationOnce(() => {
         Promise.reject(new Error("Error 500"));
