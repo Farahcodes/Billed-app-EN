@@ -112,7 +112,7 @@ describe("Given I am connected as an employee", () => {
   });
 });
 
-// GET Integration Test
+// POST Integration Test
 describe("Given I am a user connected as Employee", () => {
   describe("When I post a New Bill from the New Bill Form", () => {
     test("posts bill via mock API POST", async () => {
